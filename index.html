@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Model Index – organise your 3D files | Werkplaats Marc</title>
+  <meta name="description" content="Model Index by Werkplaats Marc: a free, local library for your STL, 3MF and OBJ files. Nothing leaves your device.">
+  <meta name="theme-color" content="#14161a">
+  <meta name="author" content="Werkplaats Marc">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Model Index">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand"><span class="logo" aria-hidden="true"></span><span data-i18n="app.title">Model Index</span></h1>
+    <input id="search" type="search" class="search" data-i18n-placeholder="search.placeholder" autocomplete="off">
+    <button id="btn-add" class="btn primary" data-i18n="add.button">Toevoegen</button>
+    <button id="btn-help" class="btn icon" data-i18n-aria-label="help.title" aria-label="Uitleg">?</button>
+    <button id="btn-settings" class="btn icon" data-i18n-aria-label="settings.title" aria-label="Instellingen">&#9881;</button>
+  </header>
+
+  <div class="toolbar">
+    <div class="chips" id="chips">
+      <button class="chip active" data-filter="all" data-i18n="filter.all">Alles</button>
+      <button class="chip" data-filter="fav" data-i18n="filter.fav">&#9733; Favorieten</button>
+      <button class="chip" data-filter="unnamed" data-i18n="filter.unnamed">Nog niet benoemd</button>
+    </div>
+    <select id="folder-filter" class="select" data-i18n-aria-label="filter.folder"></select>
+    <select id="tag-filter" class="select" data-i18n-aria-label="filter.tag"></select>
+    <select id="sort" class="select" data-i18n-aria-label="sort.label">
+      <option value="added" data-i18n="sort.added">Recent toegevoegd</option>
+      <option value="name" data-i18n="sort.name">Naam</option>
+      <option value="size" data-i18n="sort.size">Bestandsgrootte</option>
+    </select>
+    <button id="btn-dupes" class="btn" data-i18n="dupes.button">Dubbelen zoeken</button>
+  </div>
+
+  <div id="progress" class="progress" hidden>
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+    <span id="progress-text"></span>
+  </div>
+
+  <main>
+    <section id="empty" class="empty" hidden>
+      <div class="empty-icon" aria-hidden="true">&#9651;</div>
+      <h2 data-i18n="empty.title">Je bibliotheek is leeg</h2>
+      <p data-i18n="empty.text">Voeg STL-, 3MF- of OBJ-bestanden toe. Alles blijft op dit toestel: er wordt niets geüpload.</p>
+      <button id="btn-add-empty" class="btn primary large" data-i18n="add.button">Toevoegen</button>
+      <p class="hint" data-i18n="empty.drop">Of sleep bestanden in dit venster.</p>
+    </section>
+    <section id="no-results" class="empty" hidden>
+      <p data-i18n="empty.noresults">Geen modellen gevonden.</p>
+    </section>
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <footer class="site-footer">
+    <span data-i18n-html="footer.madeby">Een gratis tool van <a href="https://www.werkplaatsmarc.be" target="_blank" rel="noopener">Werkplaats Marc</a></span>
+  </footer>
+
+  <!-- Add menu -->
+  <dialog id="add-dialog" class="dialog">
+    <h2 data-i18n="add.title">Modellen toevoegen</h2>
+    <button id="add-files" class="btn primary block" data-i18n="add.files">Bestanden kiezen</button>
+    <button id="add-folder" class="btn block" data-i18n="add.folder">Een hele map kiezen</button>
+    <p class="hint" data-i18n="add.hint">STL, 3MF en OBJ. Er wordt een kopie in de browser bewaard; je originelen blijven ongewijzigd.</p>
+    <button class="btn block ghost" id="add-close" data-i18n="common.close">Sluiten</button>
+  </dialog>
+  <input id="file-input" type="file" accept=".stl,.3mf,.obj,.mtl,.zip" multiple hidden>
+  <input id="folder-input" type="file" webkitdirectory multiple hidden>
+
+  <!-- Viewer -->
+  <div id="viewer" class="viewer" hidden role="dialog" aria-modal="true">
+    <div class="viewer-stage">
+      <canvas id="viewer-canvas"></canvas>
+      <div class="viewer-top">
+        <button id="v-close" class="btn icon" data-i18n-aria-label="common.close" aria-label="Sluiten">&#10005;</button>
+        <span id="v-count" class="v-count"></span>
+        <span class="spacer"></span>
+        <button id="v-wire" class="btn small" data-i18n="viewer.wireframe">Draadmodel</button>
+        <button id="v-reset" class="btn small" data-i18n="viewer.reset">Reset</button>
+      </div>
+      <button id="v-prev" class="nav prev" data-i18n-aria-label="viewer.prev" aria-label="Vorige">&#8249;</button>
+      <button id="v-next" class="nav next" data-i18n-aria-label="viewer.next" aria-label="Volgende">&#8250;</button>
+      <div id="v-status" class="v-status" hidden></div>
+    </div>
+    <aside class="viewer-panel">
+      <label class="field">
+        <span data-i18n="detail.title">Naam</span>
+        <input id="d-title" type="text" autocomplete="off">
+      </label>
+      <p class="filename" id="d-file"></p>
+      <p class="filename" id="d-disk" hidden></p>
+      <label class="field">
+        <span data-i18n="detail.folder">Map</span>
+        <input id="d-folder" type="text" list="folder-list" autocomplete="off">
+        <datalist id="folder-list"></datalist>
+      </label>
+      <label class="field">
+        <span data-i18n="detail.tags">Tags (met komma gescheiden)</span>
+        <input id="d-tags" type="text" list="tag-list" autocomplete="off">
+        <datalist id="tag-list"></datalist>
+      </label>
+      <div id="d-tag-suggest" class="suggest"></div>
+      <label class="field">
+        <span data-i18n="detail.note">Notitie</span>
+        <textarea id="d-note" rows="3"></textarea>
+      </label>
+      <dl class="facts">
+        <dt data-i18n="detail.dims">Afmetingen (B × D × H)</dt><dd id="d-dims">-</dd>
+        <dt data-i18n="detail.size">Bestandsgrootte</dt><dd id="d-size">-</dd>
+        <dt data-i18n="detail.added">Toegevoegd</dt><dd id="d-added">-</dd>
+      </dl>
+      <div class="row">
+        <button id="d-fav" class="btn" data-i18n="detail.fav">&#9734; Favoriet</button>
+        <button id="d-save" class="btn primary" data-i18n="detail.save">Opslaan</button>
+      </div>
+      <div class="row">
+        <button id="d-download" class="btn" data-i18n="detail.download">Download origineel</button>
+        <button id="d-delete" class="btn danger" data-i18n="detail.delete">Verwijderen</button>
+      </div>
+      <p class="hint" data-i18n="detail.deletehint">Verwijderen haalt het model enkel uit deze bibliotheek, niet van je schijf.</p>
+    </aside>
+  </div>
+
+  <!-- Selection bar -->
+  <div id="selbar" class="selbar" hidden>
+    <span id="sel-count" class="sel-count"></span>
+    <button id="sel-all" class="btn small" data-i18n="bulk.all">Alles</button>
+    <button id="sel-move" class="btn small" data-i18n="bulk.move">Naar map</button>
+    <button id="sel-tags" class="btn small" data-i18n="bulk.tags">Tags</button>
+    <button id="sel-delete" class="btn small danger" data-i18n="bulk.delete">Verwijderen</button>
+    <button id="sel-cancel" class="btn small icon" data-i18n-aria-label="common.close" aria-label="Sluiten">&#10005;</button>
+  </div>
+
+  <dialog id="bulk-dialog" class="dialog">
+    <h2 id="bulk-title"></h2>
+    <input id="bulk-input" type="text" list="bulk-list" autocomplete="off">
+    <datalist id="bulk-list"></datalist>
+    <button id="bulk-ok" class="btn primary block" data-i18n="bulk.apply">Toepassen</button>
+    <button id="bulk-nofolder" class="btn block" data-i18n="bulk.nofolder">Uit map halen</button>
+    <button id="bulk-cancel" class="btn block ghost" data-i18n="common.cancel">Annuleren</button>
+  </dialog>
+
+  <!-- Confirmation (replaces the browser's own popups) -->
+  <dialog id="choice-dialog" class="dialog">
+    <h2 id="choice-title"></h2>
+    <p id="choice-message" class="choice-message"></p>
+    <div id="choice-buttons" class="choice-buttons"></div>
+  </dialog>
+
+  <!-- Help -->
+  <dialog id="help-dialog" class="dialog wide">
+    <h2 data-i18n="help.title">Hoe werkt het?</h2>
+    <p data-i18n="help.intro">Een gratis bibliotheek voor je 3D-printbestanden (STL, 3MF, OBJ). Alles blijft op dit toestel: er wordt niets geüpload en je originele bestanden blijven ongewijzigd.</p>
+    <ol class="help-list">
+      <li data-i18n-html="help.step.add"><b>Toevoegen:</b> tik op Toevoegen en kies bestanden of een hele map, of sleep ze in het venster.</li>
+      <li data-i18n-html="help.step.view"><b>Bekijken:</b> tik op een model om het te draaien en te zoomen. De afmetingen staan eronder.</li>
+      <li data-i18n-html="help.step.name"><b>Benoemen:</b> geef elk model een eigen naam, tags en een notitie. Zo weet je later weer wat wat is.</li>
+      <li data-i18n-html="help.step.tidy"><b>Selecteren:</b> vink modellen aan (rechtsboven) om ze samen naar een map te verplaatsen, te taggen of te verwijderen.</li>
+      <li data-i18n-html="help.step.dupes"><b>Dubbelen:</b> vind identieke bestanden onder verschillende namen en ruim ze op.</li>
+      <li data-i18n-html="help.step.colours"><b>Kleuren:</b> 3MF-kleuren van Bambu Studio, OrcaSlicer en PrusaSlicer worden getoond. Bij OBJ kies je het .mtl-bestand samen met de .obj.</li>
+      <li data-i18n-html="help.step.disk"><b>Schijf (optioneel):</b> in Chrome of Edge op pc kun je een map koppelen, zodat hernoemen en verplaatsen ook echt op schijf gebeurt. Staat standaard uit.</li>
+      <li data-i18n-html="help.step.backup"><b>Back-up:</b> je bibliotheek staat enkel in deze browser. Maak af en toe een back-up via Instellingen, ook om van toestel te wisselen.</li>
+      <li data-i18n-html="help.step.install"><b>Installeren:</b> kies "Toevoegen aan beginscherm" (iPhone/iPad via Delen, Android via het menu) om het als app te gebruiken, ook offline.</li>
+    </ol>
+    <p class="hint" data-i18n-html="help.credit">Gemaakt door <a href="https://www.werkplaatsmarc.be" target="_blank" rel="noopener">Werkplaats Marc</a>.</p>
+    <p class="hint"><a href="https://github.com/imoliamedia/3Dmodel-library" target="_blank" rel="noopener" data-i18n="help.source">Open source op GitHub (MIT)</a></p>
+    <button class="btn block ghost" id="help-close" data-i18n="common.close">Sluiten</button>
+  </dialog>
+
+  <!-- Duplicates -->
+  <dialog id="dupes-dialog" class="dialog wide">
+    <h2 data-i18n="dupes.title">Dubbele bestanden</h2>
+    <p id="dupes-status" class="hint"></p>
+    <div id="dupes-list" class="dupes-list"></div>
+    <button id="dupes-clean" class="btn primary block" data-i18n="dupes.clean" hidden>Verwijder alle dubbelen</button>
+    <p class="hint" data-i18n="dupes.hint">Enkel bestanden die byte voor byte identiek zijn. Van elke groep blijft de kopie met de meeste gegevens staan; namen en tags van de andere worden meegenomen.</p>
+    <button class="btn block ghost" id="dupes-close" data-i18n="common.close">Sluiten</button>
+  </dialog>
+
+  <!-- Settings -->
+  <dialog id="settings-dialog" class="dialog">
+    <h2 data-i18n="settings.title">Instellingen</h2>
+    <label class="field">
+      <span data-i18n="settings.language">Taal</span>
+      <select id="set-lang" class="select">
+        <option value="nl">Nederlands</option>
+        <option value="en">English</option>
+      </select>
+    </label>
+    <label class="field">
+      <span data-i18n="settings.theme">Thema</span>
+      <select id="set-theme" class="select">
+        <option value="auto" data-i18n="settings.theme.auto">Automatisch</option>
+        <option value="light" data-i18n="settings.theme.light">Licht</option>
+        <option value="dark" data-i18n="settings.theme.dark">Donker</option>
+      </select>
+    </label>
+    <button id="set-rebuild" class="btn block" data-i18n="settings.rebuild">Previews opnieuw maken</button>
+    <h3 data-i18n="disk.title">Schijf (Chrome/Edge op pc)</h3>
+    <p id="disk-unsupported" class="hint" data-i18n="disk.unsupported" hidden>Niet beschikbaar in deze browser. Het koppelen van een map werkt alleen in Chrome of Edge op een computer.</p>
+    <div id="disk-section" hidden>
+      <p class="hint" data-i18n="disk.hint">Koppel een map op je pc. Dan kan de app bestanden ook echt op schijf hernoemen en verplaatsen als je dat hier aanzet. Standaard gebeurt alles enkel in de app.</p>
+      <p id="disk-status" class="hint"></p>
+      <button id="disk-link" class="btn block" data-i18n="disk.link">Map koppelen</button>
+      <button id="disk-rescan" class="btn block" data-i18n="disk.rescan" hidden>Opnieuw scannen</button>
+      <button id="disk-unlink" class="btn block" data-i18n="disk.unlink" hidden>Ontkoppelen</button>
+      <label class="check" id="disk-sync-row" hidden>
+        <input type="checkbox" id="disk-sync">
+        <span data-i18n="disk.sync">Wijzigingen ook op schijf uitvoeren</span>
+      </label>
+      <p class="hint" data-i18n="disk.syncinfo">Aan: een nieuwe naam hernoemt het bestand, een map kiezen verplaatst het naar die map en verwijderen kan het bestand ook van je schijf halen (altijd met een extra vraag, niet ongedaan te maken).</p>
+    </div>
+    <h3 data-i18n="settings.backup">Back-up</h3>
+    <p class="hint" data-i18n="settings.backup.hint">Je bibliotheek staat enkel in deze browser. Maak regelmatig een back-up, ook om van toestel te wisselen.</p>
+    <button id="set-export-full" class="btn block" data-i18n="settings.export.full">Exporteer alles (catalogus + bestanden)</button>
+    <button id="set-export-meta" class="btn block" data-i18n="settings.export.meta">Exporteer enkel catalogus</button>
+    <button id="set-import" class="btn block" data-i18n="settings.import">Importeer back-up</button>
+    <input id="import-input" type="file" hidden>
+    <p class="hint" data-i18n="settings.import.hint">Kies het .zip-bestand van je back-up. Zie je het niet, kies dan in de bestandskiezer een andere locatie (bv. Downloads of de map waar je het ontving).</p>
+    <p id="set-last-backup" class="hint"></p>
+    <h3 data-i18n="settings.storage">Opslag</h3>
+    <p id="set-storage" class="hint">-</p>
+    <button class="btn block ghost" id="settings-close" data-i18n="common.close">Sluiten</button>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="dropzone" class="dropzone" hidden><span data-i18n="empty.dropnow">Laat los om toe te voegen</span></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
