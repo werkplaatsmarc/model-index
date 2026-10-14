@@ -880,7 +880,7 @@ async function doImportBackup(file) {
   } catch (err) {
     console.error(err);
     // not a backup: a zip with models in it is added like any other models
-    if (/\.zip$/i.test(file.name)) return handleFiles([file]);
+    if (/\.zip(\.txt)?$/i.test(file.name)) return handleFiles([file]);
     toast(t('backup.importfail'));
   }
 }

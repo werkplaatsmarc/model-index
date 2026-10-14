@@ -47,12 +47,22 @@ export function downloadBackup({ blob, filename }) {
   markBackedUp();
 }
 
-const asFile = ({ blob, filename }) => new File([blob], filename, { type: 'application/zip' });
+// Chrome/Edge/Android only share a short list of file types (images, text, pdf...) and refuse .zip
+// with a "permission denied", even though canShare() says yes. They also refuse more than 50 MB.
+// So there the zip travels as plain text under a .txt name; importBackup() reads the content, not the name.
+const isChromium = () => /Chrome\//.test(navigator.userAgent);
+const MAX_CHROMIUM_SHARE_BYTES = 50 * 1024 * 1024;
+
+const asFile = ({ blob, filename }) => (isChromium()
+  ? new File([blob], `${filename}.txt`, { type: 'text/plain' })
+  : new File([blob], filename, { type: 'application/zip' }));
 
 /** True when this browser can hand the backup file to the system share sheet. */
 export function canShareBackup(backup) {
   try {
-    return typeof navigator.share === 'function' && navigator.canShare?.({ files: [asFile(backup)] }) === true;
+    if (typeof navigator.share !== 'function') return false;
+    if (isChromium() && backup.blob.size > MAX_CHROMIUM_SHARE_BYTES) return false;
+    return navigator.canShare?.({ files: [asFile(backup)] }) === true;
   } catch { return false; }
 }
 
