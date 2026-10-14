@@ -155,7 +155,7 @@
   "del.remove": "Remove",
   "del.libraryOnly": "Only from the library",
   "del.alsoDisk": "Also delete from disk ({n})",
-  "settings.import.hint": "Choose the .zip file of your backup. If you do not see it, pick another location in the file picker (e.g. Downloads or the folder where you received it).",
+  "settings.import.hint": "Choose the .zip file of your backup (shared from Chrome it is called .zip.txt; that works too). If you do not see it, pick another location in the file picker (e.g. Downloads or the folder where you received it).",
   "import.nomtl": "{n} OBJ model(s) point to a .mtl file that was not added, so the colours are missing. Add the .obj together with the .mtl file from the same folder.",
   "app.doctitle": "Model Index – organise your 3D files | Werkplaats Marc"
 }
