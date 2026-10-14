@@ -14,14 +14,12 @@ function download(blob, filename) {
 }
 
 const stamp = () => new Date().toISOString().slice(0, 10);
-const markBackedUp = () => { try { localStorage.setItem('ml.lastBackup', String(Date.now())); } catch {} };
 
 /**
- * Build the backup .zip without saving it. With files=true it holds all originals
+ * Export the catalog. With files=true a .zip with all originals is written
  * (stored uncompressed: STL/3MF barely compress and it keeps memory use lower).
- * Returns { blob, filename }.
  */
-export async function createBackup({ files }) {
+export async function exportBackup({ files }) {
   const models = await getAllModels();
   const catalog = {
     format: FORMAT, version: VERSION, exported: Date.now(), includesFiles: files,
@@ -36,49 +34,8 @@ export async function createBackup({ files }) {
     }
   }
   const zipped = zipSync(zipEntries, { level: 0 });
-  return {
-    blob: new Blob([zipped], { type: 'application/zip' }),
-    filename: `model-index-${files ? 'full' : 'catalog'}-${stamp()}.zip`,
-  };
-}
-
-export function downloadBackup({ blob, filename }) {
-  download(blob, filename);
-  markBackedUp();
-}
-
-// Chrome/Edge/Android only share a short list of file types (images, text, pdf...) and refuse .zip
-// with a "permission denied", even though canShare() says yes. They also refuse more than 50 MB.
-// So there the zip travels as plain text under a .txt name; importBackup() reads the content, not the name.
-const isChromium = () => /Chrome\//.test(navigator.userAgent);
-const MAX_CHROMIUM_SHARE_BYTES = 50 * 1024 * 1024;
-
-const asFile = ({ blob, filename }) => (isChromium()
-  ? new File([blob], `${filename}.txt`, { type: 'text/plain' })
-  : new File([blob], filename, { type: 'application/zip' }));
-
-/** True when this browser can hand the backup file to the system share sheet. */
-export function canShareBackup(backup) {
-  try {
-    if (typeof navigator.share !== 'function') return false;
-    if (isChromium() && backup.blob.size > MAX_CHROMIUM_SHARE_BYTES) return false;
-    return navigator.canShare?.({ files: [asFile(backup)] }) === true;
-  } catch { return false; }
-}
-
-/**
- * Open the share sheet (WhatsApp, mail, Drive, Files...). Must run straight from a tap.
- * Returns true when shared, false when the user closed the sheet; throws on a real failure.
- */
-export async function shareBackup(backup) {
-  try {
-    await navigator.share({ files: [asFile(backup)], title: backup.filename });
-  } catch (err) {
-    if (err?.name === 'AbortError') return false;
-    throw err;
-  }
-  markBackedUp();
-  return true;
+  download(new Blob([zipped], { type: 'application/zip' }), `model-index-${files ? 'full' : 'catalog'}-${stamp()}.zip`);
+  try { localStorage.setItem('ml.lastBackup', String(Date.now())); } catch {}
 }
 
 /** Import a backup .zip. Existing ids are kept untouched. Returns { added, skipped }. */

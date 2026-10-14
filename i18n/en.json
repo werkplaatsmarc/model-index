@@ -91,13 +91,6 @@
   "settings.storage.nopersist": "The browser may clear this storage when space runs low: make a backup.",
   "backup.working": "Creating backup…",
   "backup.done": "Backup saved",
-  "backup.ready": "Backup ready",
-  "backup.ready.message": "{name} ({size})\n\nShare the backup via WhatsApp, email, Drive or Files, or save it on this device.",
-  "backup.share": "Share…",
-  "backup.save": "Save on this device",
-  "backup.shared": "Backup shared",
-  "backup.cancelled": "Backup not kept",
-  "backup.sharefail": "Sharing failed, the backup is saved on this device instead.",
   "backup.importdone": "{added} models imported, {merged} updated, {skipped} skipped",
   "backup.importfail": "This file is not a valid backup.",
   "backup.reminder": "It has been a while since your last backup. You can make one in Settings.",
@@ -155,7 +148,7 @@
   "del.remove": "Remove",
   "del.libraryOnly": "Only from the library",
   "del.alsoDisk": "Also delete from disk ({n})",
-  "settings.import.hint": "Choose the .zip file of your backup (shared from Chrome it is called .zip.txt; that works too). If you do not see it, pick another location in the file picker (e.g. Downloads or the folder where you received it).",
+  "settings.import.hint": "Choose the .zip file of your backup. If you do not see it, pick another location in the file picker (e.g. Downloads or the folder where you received it).",
   "import.nomtl": "{n} OBJ model(s) point to a .mtl file that was not added, so the colours are missing. Add the .obj together with the .mtl file from the same folder.",
   "app.doctitle": "Model Index – organise your 3D files | Werkplaats Marc"
 }

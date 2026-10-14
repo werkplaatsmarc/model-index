@@ -5,7 +5,7 @@ import {
 import { importFiles, filesFromDrop, expandZips } from './import.js';
 import { ThumbQueue, THUMB_VERSION } from './thumbs.js';
 import { Viewer } from './viewer.js';
-import { createBackup, downloadBackup, canShareBackup, shareBackup, importBackup, lastBackup } from './backup.js';
+import { exportBackup, importBackup, lastBackup } from './backup.js';
 import { findDuplicates, pickKeeper, mergeInto } from './dupes.js';
 import {
   diskSupported, loadRoot, pickRoot, unlinkRoot, ensureWrite, syncEnabled, setSyncEnabled, rootName, hasRoot,
@@ -835,34 +835,8 @@ function applyTheme(mode) {
 async function doExport(files) {
   toast(t('backup.working'), 60_000);
   try {
-    const backup = await createBackup({ files });
-    let notice = t('backup.done');
-    if (canShareBackup(backup)) {
-      // Building a big zip can outlast the tap that started it, and sharing needs a fresh tap: ask first.
-      $('toast').hidden = true;
-      const choice = await choose({
-        title: t('backup.ready'),
-        message: t('backup.ready.message', { name: backup.filename, size: formatBytes(backup.blob.size) }),
-        buttons: [
-          { label: t('backup.share'), value: 'share', kind: 'primary' },
-          { label: t('backup.save'), value: 'save' },
-          { label: t('common.cancel'), value: null, kind: 'ghost' },
-        ],
-      });
-      if (!choice) return toast(t('backup.cancelled'));
-      if (choice === 'share') {
-        try {
-          if (!(await shareBackup(backup))) return toast(t('backup.cancelled'));
-          toast(t('backup.shared'));
-          return openSettings();
-        } catch (err) {
-          console.error(err);
-          notice = t('backup.sharefail');
-        }
-      }
-    }
-    downloadBackup(backup);
-    toast(notice, 5000);
+    await exportBackup({ files });
+    toast(t('backup.done'));
     openSettings();
   } catch (err) {
     console.error(err);
@@ -880,7 +854,7 @@ async function doImportBackup(file) {
   } catch (err) {
     console.error(err);
     // not a backup: a zip with models in it is added like any other models
-    if (/\.zip(\.txt)?$/i.test(file.name)) return handleFiles([file]);
+    if (/\.zip$/i.test(file.name)) return handleFiles([file]);
     toast(t('backup.importfail'));
   }
 }

@@ -91,13 +91,6 @@
   "settings.storage.nopersist": "De browser kan deze opslag opruimen als er ruimte tekort is: maak een back-up.",
   "backup.working": "Back-up maken…",
   "backup.done": "Back-up opgeslagen",
-  "backup.ready": "Back-up klaar",
-  "backup.ready.message": "{name} ({size})\n\nDeel de back-up via WhatsApp, e-mail, Drive of Bestanden, of sla ze op dit toestel op.",
-  "backup.share": "Delen…",
-  "backup.save": "Opslaan op dit toestel",
-  "backup.shared": "Back-up gedeeld",
-  "backup.cancelled": "Back-up niet bewaard",
-  "backup.sharefail": "Delen lukte niet, de back-up wordt opgeslagen op dit toestel.",
   "backup.importdone": "{added} modellen geïmporteerd, {merged} bijgewerkt, {skipped} overgeslagen",
   "backup.importfail": "Dit bestand is geen geldige back-up.",
   "backup.reminder": "Het is een tijdje geleden sinds je laatste back-up. Je kunt er een maken via Instellingen.",
@@ -155,7 +148,7 @@
   "del.remove": "Verwijderen",
   "del.libraryOnly": "Enkel uit de bibliotheek",
   "del.alsoDisk": "Ook van schijf verwijderen ({n})",
-  "settings.import.hint": "Kies het .zip-bestand van je back-up (gedeeld vanuit Chrome heet het .zip.txt; ook dat werkt). Zie je het niet, kies dan in de bestandskiezer een andere locatie (bv. Downloads of de map waar je het ontving).",
+  "settings.import.hint": "Kies het .zip-bestand van je back-up. Zie je het niet, kies dan in de bestandskiezer een andere locatie (bv. Downloads of de map waar je het ontving).",
   "import.nomtl": "{n} OBJ-model(len) verwijst naar een .mtl-bestand dat niet is meegegeven, dus de kleuren ontbreken. Voeg de .obj samen met het .mtl-bestand uit dezelfde map toe.",
   "app.doctitle": "Model Index – 3D-bestanden ordenen | Werkplaats Marc"
 }

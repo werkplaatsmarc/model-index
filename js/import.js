@@ -26,8 +26,6 @@ export async function filesFromDrop(dataTransfer) {
   return out.map((o) => Object.assign(o.file, { _folder: o.folder }));
 }
 
-const ZIP_NAME = /\.zip(\.txt)?$/i;
-
 /**
  * Zip files that were picked directly (Tinkercad, Thingiverse and Printables hand out zips) are
  * opened: the models and .mtl colour files inside are added, named after the zip.
@@ -38,8 +36,7 @@ export async function expandZips(files) {
   const backups = [];
   for (const file of files) {
     // zips found inside a folder that was added are left alone: that folder is usually already unpacked
-    // a backup shared from Chrome arrives as ".zip.txt" (Chrome refuses to share .zip files)
-    if (!ZIP_NAME.test(file.name) || file.webkitRelativePath || file._folder) { out.push(file); continue; }
+    if (extOf(file.name) !== 'zip' || file.webkitRelativePath || file._folder) { out.push(file); continue; }
     let entries;
     try {
       entries = unzipSync(new Uint8Array(await file.arrayBuffer()), {
@@ -49,7 +46,7 @@ export async function expandZips(files) {
       continue; // not a readable zip
     }
     if (entries['catalog.json']) { backups.push(file); continue; }
-    const stem = file.name.replace(ZIP_NAME, '');
+    const stem = file.name.replace(/\.zip$/i, '');
     for (const [path, data] of Object.entries(entries)) {
       const name = path.split('/').pop();
       if (path.includes('__MACOSX/') || name.startsWith('._')) continue;

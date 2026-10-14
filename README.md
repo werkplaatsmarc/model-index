@@ -11,7 +11,7 @@ Een gratis, volledig lokale bibliotheek voor je 3D-printbestanden (**STL, 3MF, O
 - **Selecteren:** vink modellen aan (rechtsboven op de kaart) en verplaats ze samen naar een map, geef ze tags of verwijder ze uit de bibliotheek. Mappen bestaan enkel binnen de app; je bestanden op schijf blijven staan.
 - **Schijf-koppeling (optioneel, Chrome/Edge op pc):** koppel een map in Instellingen en laat hernoemen en verplaatsen ook echt op schijf gebeuren. Verwijderen van schijf vraagt altijd een extra bevestiging en is niet ongedaan te maken. Op telefoon en tablet kan een webpagina dit niet.
 - **Dubbelen zoeken:** vind identieke bestanden onder verschillende namen en ruim ze op.
-- **Back-up:** exporteer alles als `.zip` (ook om van toestel te wisselen) of enkel de catalogus. Waar de browser het ondersteunt, deel je de back-up direct via het deelmenu (WhatsApp, e-mail, Drive, Bestanden); anders wordt ze gedownload.
+- **Back-up:** exporteer alles als `.zip` (ook om van toestel te wisselen) of enkel de catalogus.
 - Nederlands en Engels.
 
 ## Gebruiken
@@ -49,7 +49,7 @@ A free, fully local library for your 3D-printing files (**STL, 3MF, OBJ**): add 
 - **Select:** tick models (top right of the card) to move them to a folder, tag them or remove them together. Folders only exist inside the app; your files on disk are left alone.
 - **Disk link (optional, Chrome/Edge on desktop):** link a folder in Settings and let renaming and moving really happen on disk. Deleting from disk always asks an extra confirmation and cannot be undone. A web page cannot do this on phones and tablets.
 - **Find duplicates:** spot identical files under different names and clear them out.
-- **Backup:** export everything as a `.zip` (also to switch devices) or just the catalog. Where the browser supports it, share the backup straight from the share sheet (WhatsApp, email, Drive, Files); otherwise it is downloaded.
+- **Backup:** export everything as a `.zip` (also to switch devices) or just the catalog.
 - Dutch and English.
 
 Run it yourself: it is a static site, no build step (`python -m http.server`). For GitHub Pages, publish this folder and bump `VERSION` in `sw.js` after every change.
