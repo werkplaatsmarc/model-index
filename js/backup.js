@@ -14,12 +14,14 @@ function download(blob, filename) {
 }
 
 const stamp = () => new Date().toISOString().slice(0, 10);
+const markBackedUp = () => { try { localStorage.setItem('ml.lastBackup', String(Date.now())); } catch {} };
 
 /**
- * Export the catalog. With files=true a .zip with all originals is written
+ * Build the backup .zip without saving it. With files=true it holds all originals
  * (stored uncompressed: STL/3MF barely compress and it keeps memory use lower).
+ * Returns { blob, filename }.
  */
-export async function exportBackup({ files }) {
+export async function createBackup({ files }) {
   const models = await getAllModels();
   const catalog = {
     format: FORMAT, version: VERSION, exported: Date.now(), includesFiles: files,
@@ -34,8 +36,39 @@ export async function exportBackup({ files }) {
     }
   }
   const zipped = zipSync(zipEntries, { level: 0 });
-  download(new Blob([zipped], { type: 'application/zip' }), `model-index-${files ? 'full' : 'catalog'}-${stamp()}.zip`);
-  try { localStorage.setItem('ml.lastBackup', String(Date.now())); } catch {}
+  return {
+    blob: new Blob([zipped], { type: 'application/zip' }),
+    filename: `model-index-${files ? 'full' : 'catalog'}-${stamp()}.zip`,
+  };
+}
+
+export function downloadBackup({ blob, filename }) {
+  download(blob, filename);
+  markBackedUp();
+}
+
+const asFile = ({ blob, filename }) => new File([blob], filename, { type: 'application/zip' });
+
+/** True when this browser can hand the backup file to the system share sheet. */
+export function canShareBackup(backup) {
+  try {
+    return typeof navigator.share === 'function' && navigator.canShare?.({ files: [asFile(backup)] }) === true;
+  } catch { return false; }
+}
+
+/**
+ * Open the share sheet (WhatsApp, mail, Drive, Files...). Must run straight from a tap.
+ * Returns true when shared, false when the user closed the sheet; throws on a real failure.
+ */
+export async function shareBackup(backup) {
+  try {
+    await navigator.share({ files: [asFile(backup)], title: backup.filename });
+  } catch (err) {
+    if (err?.name === 'AbortError') return false;
+    throw err;
+  }
+  markBackedUp();
+  return true;
 }
 
 /** Import a backup .zip. Existing ids are kept untouched. Returns { added, skipped }. */
