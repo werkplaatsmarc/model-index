@@ -1,7 +1,7 @@
 // Offline cache for the app shell.
 // Strategy: network first, cache as fallback. Updates therefore show up on the next load
 // when online, and the app still works offline. Bump VERSION to clear old caches.
-const VERSION = 'v11';
+const VERSION = 'v12';
 const CACHE = `model-index-${VERSION}`;
 const ASSETS = [
   './',
